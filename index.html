@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cruzadas da Escritura</title>
+<meta name="theme-color" content="#0F1B33">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Cruzadas">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230F1B33'/%3E%3Ctext x='32' y='46' font-family='Georgia,serif' font-size='38' fill='%23C9A227' text-anchor='middle'%3E%E2%9C%A6%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&family=Cormorant+Garamond:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0F1B33; --navy2:#16264A; --gold:#C9A227; --gold-cl:#E7C65A;
+  --creme:#F5EFE0; --papel:#FFFDF7; --tinta:#1A1A18; --linha:#8D8B84;
+  --erro:#B3453A; --ok:#2E7D5B;
+  --cel:58px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;min-height:100%}
+body{
+  background:var(--navy); color:var(--creme);
+  font-family:'Cormorant Garamond',Georgia,serif; font-size:18px; line-height:1.5;
+  overscroll-behavior-y:none;
+}
+button{font-family:inherit;color:inherit;border:0;background:none;cursor:pointer;font-size:inherit}
+.envelope{max-width:1040px;margin:0 auto;padding:18px 16px 24px}
+
+/* ---------- cabeçalho ---------- */
+.topo{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+.topo h1{font-family:'Cinzel',serif;font-weight:600;font-size:26px;margin:0;color:var(--gold-cl);letter-spacing:.04em}
+.topo p{margin:0;color:rgba(245,239,224,.6);font-size:16px}
+
+/* ---------- botões ---------- */
+.bt{border:1px solid rgba(201,162,39,.45);border-radius:6px;padding:9px 16px;background:rgba(201,162,39,.08);
+  transition:background .15s,border-color .15s}
+.bt:hover{background:rgba(201,162,39,.18)}
+.bt:focus-visible{outline:2px solid var(--gold-cl);outline-offset:2px}
+.bt.forte{background:var(--gold);color:#1B1403;border-color:var(--gold);font-weight:600}
+.bt.forte:hover{background:var(--gold-cl)}
+.bt.mudo{border-color:rgba(245,239,224,.2);background:none;color:rgba(245,239,224,.75)}
+
+/* ---------- seleção de nível ---------- */
+.niveis{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin-bottom:26px}
+.nivel{border:1px solid rgba(201,162,39,.3);border-radius:10px;padding:16px 18px;text-align:left;
+  display:flex;flex-direction:column;gap:4px}
+.nivel[aria-pressed="true"]{border-color:var(--gold);background:rgba(201,162,39,.12)}
+.nivel b{font-family:'Cinzel',serif;font-size:18px;color:var(--gold-cl);font-weight:600}
+.nivel span{color:rgba(245,239,224,.6);font-size:16px}
+
+.paginas{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(96px,1fr))}
+.pag{border:1px solid rgba(245,239,224,.18);border-radius:8px;padding:12px 8px;text-align:center;line-height:1.25}
+.pag:hover{border-color:var(--gold)}
+.pag b{display:block;font-family:'Cinzel',serif;font-size:20px;color:var(--creme)}
+.pag small{color:rgba(245,239,224,.5);font-size:14px}
+.pag.feita{border-color:rgba(46,125,91,.7)}
+.pag.feita small{color:#7FC3A4}
+
+/* ---------- folha do quebra-cabeça ---------- */
+.folha{background:var(--papel);color:var(--tinta);border-radius:8px;padding:16px;
+  display:inline-block;max-width:100%;overflow:auto}
+.cabFolha{display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-bottom:10px;
+  font-family:'Cinzel',serif;font-size:14px;color:#4A4842;letter-spacing:.04em}
+.grade{display:grid;gap:0;border:1.6px solid var(--tinta);width:max-content;max-width:100%}
+.cel{width:var(--cel);height:var(--cel);border:.5px solid var(--linha);position:relative;overflow:hidden;
+  display:flex;align-items:center;justify-content:center}
+.cel.bloco{background:#DCD8CC}
+.cel.dica{background:#EDE9DC;cursor:default;padding:2px 3px;display:block}
+.cel.letra{background:#fff;cursor:pointer;font-family:'Cinzel',serif;font-weight:600;
+  font-size:calc(var(--cel) * .48);color:var(--tinta);user-select:none}
+.cel.letra.dado{color:#6C6A63}
+.cel.letra.ativa{background:#FBF0C8}
+.cel.letra.foco{background:#F5DE86;box-shadow:inset 0 0 0 2px #A9821A}
+.cel.letra.errada{color:var(--erro)}
+.def{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;font-size:10px;line-height:1.1;
+  color:#2C2B27;height:50%;display:flex;align-items:center;padding-right:7px;overflow:hidden}
+.def.só{height:100%}
+.def.curta{font-size:11px}
+.def.longa{font-size:9px}
+.cel.dica.duas .def:first-child{border-bottom:.5px solid var(--linha)}
+.seta{position:absolute;color:#8A6C12;font-size:11px;line-height:1}
+.seta.h{right:1px}
+.seta.v{bottom:0}
+
+/* ---------- barra de dica (compacto) ---------- */
+.barra{display:none}
+.acoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;align-items:center}
+.relogio{font-family:'Cinzel',serif;color:var(--gold-cl);margin-left:auto;font-size:18px}
+
+/* ---------- teclado ---------- */
+.teclado{display:none;position:sticky;bottom:0;padding:8px 4px calc(8px + env(safe-area-inset-bottom));
+  background:var(--navy2);border-top:1px solid rgba(201,162,39,.25);margin:16px -16px -24px}
+.linhaT{display:flex;gap:4px;justify-content:center;margin-bottom:4px}
+.tecla{flex:1 1 0;max-width:38px;height:44px;border-radius:5px;background:rgba(245,239,224,.1);
+  font-family:'Cinzel',serif;font-size:16px;display:flex;align-items:center;justify-content:center}
+.tecla:active{background:var(--gold);color:#1B1403}
+.tecla.larga{max-width:80px;font-size:14px;font-family:'Cormorant Garamond',serif}
+
+/* ---------- modal ---------- */
+.veu{position:fixed;inset:0;background:rgba(8,14,28,.82);display:none;align-items:center;justify-content:center;padding:20px;z-index:20}
+.veu.aberto{display:flex}
+.caixa{background:var(--navy2);border:1px solid rgba(201,162,39,.4);border-radius:12px;padding:24px;max-width:420px;width:100%}
+.caixa h2{font-family:'Cinzel',serif;color:var(--gold-cl);margin:0 0 8px;font-size:22px;font-weight:600}
+.caixa ul{margin:12px 0 0;padding-left:20px;color:rgba(245,239,224,.8)}
+
+.oculto{display:none !important}
+.soImpressao{display:none}
+
+/* ---------- modo compacto: celular ---------- */
+@media (max-width:760px){
+  body{font-size:17px}
+  .envelope{padding:14px 16px 0}
+  :root{--cel:34px}
+  .def{display:none}
+  .cel.dica{background:#E4DFCE}
+  .seta{font-size:13px;top:50%;transform:translateY(-50%)}
+  .seta.v{top:auto;bottom:1px;left:50%;transform:translateX(-50%)}
+  .barra{display:flex;position:sticky;bottom:0;z-index:5;gap:10px;align-items:center;
+    background:var(--navy2);border-top:1px solid rgba(201,162,39,.25);
+    margin:12px -16px 0;padding:10px 14px;min-height:56px}
+  .barra .txt{flex:1;font-size:17px;line-height:1.25}
+  .barra .nav{border:1px solid rgba(245,239,224,.25);border-radius:5px;width:34px;height:34px;
+    display:flex;align-items:center;justify-content:center}
+  .teclado{display:block}
+  .relogio{margin-left:auto}
+}
+
+/* ---------- impressão ---------- */
+@media print{
+  :root{--cel:14mm}
+  body{background:#fff;color:#000}
+  .envelope{max-width:none;padding:0}
+  .topo,.acoes,.teclado,.barra,.niveis,.paginas,.veu,.naoImprime{display:none !important}
+  .folha{border:0;padding:0;background:#fff;display:block;page-break-after:always}
+  .folha:last-child{page-break-after:auto}
+  .def{display:flex;font-size:9px}
+  .def.longa{font-size:8px}
+  .cel.dica{background:#EFEFEF}
+  .cel.bloco{background:#CFCFCF}
+  .cel.letra.ativa,.cel.letra.foco{background:#fff;box-shadow:none}
+  .gabarito{display:block !important}
+  .soImpressao{display:inline;font-weight:400;letter-spacing:0}
+  .cabFolha{font-size:12px}
+}
+.gabarito{display:none}
+</style>
+</head>
+<body>
+<div class="envelope">
+
+  <header class="topo">
+    <h1>Cruzadas da Escritura</h1>
+    <p id="subtitulo">Palavras cruzadas bíblicas no formato de setas</p>
+  </header>
+
+  <!-- ===== tela inicial ===== -->
+  <section id="telaInicio">
+    <div class="niveis" id="listaNiveis"></div>
+    <div class="paginas" id="listaPaginas"></div>
+    <div class="acoes">
+      <button class="bt mudo" id="btGerador">Gerar página avulsa</button>
+      <button class="bt mudo" id="btLimpar">Apagar meu progresso</button>
+    </div>
+  </section>
+
+  <!-- ===== tela do jogo ===== -->
+  <section id="telaJogo" class="oculto">
+    <div class="acoes naoImprime" style="margin:0 0 14px">
+      <button class="bt mudo" id="btVoltar">Voltar</button>
+      <span class="relogio" id="relogio">00:00</span>
+    </div>
+
+    <div class="folha" id="folha">
+      <div class="cabFolha">
+        <span id="tituloFolha"></span>
+        <span class="soImpressao">Nome: ____________________   Tempo: ________</span>
+        <span id="idFolha"></span>
+      </div>
+      <div class="grade" id="grade"></div>
+    </div>
+
+    <div class="folha gabarito" id="folhaGabarito">
+      <div class="cabFolha"><span id="tituloGab"></span><span>Gabarito</span></div>
+      <div class="grade" id="gradeGabarito"></div>
+    </div>
+
+    <div class="acoes naoImprime">
+      <button class="bt" id="btVerificar">Verificar</button>
+      <button class="bt" id="btRevelar">Revelar letra</button>
+      <button class="bt" id="btImprimir">Imprimir</button>
+      <button class="bt mudo" id="btReiniciar">Recomeçar</button>
+    </div>
+
+    <div class="barra naoImprime" id="barra">
+      <button class="nav" id="btAnterior" aria-label="Definição anterior">‹</button>
+      <div class="txt" id="dicaAtiva">Toque numa casa para começar</div>
+      <button class="nav" id="btProxima" aria-label="Próxima definição">›</button>
+    </div>
+
+    <div class="teclado naoImprime" id="teclado"></div>
+  </section>
+</div>
+
+<div class="veu" id="veu">
+  <div class="caixa">
+    <h2 id="tituloModal"></h2>
+    <div id="corpoModal"></div>
+    <div class="acoes"><button class="bt forte" id="btFecharModal">Fechar</button></div>
+  </div>
+</div>
+
+<script>
+// Banco de palavras. p = forma da grade (sem acento). e = forma do gabarito.
+// d = definicao. n = nivel (1 facil, 2 medio, 3 dificil). t = 1 biblica, 0 neutra.
+const B = (p, e, d, n) => ({ p, e: e || p, d, n, t: 1 });
+const N = (p, e, d, n) => ({ p, e: e || p, d, n, t: 0 });
+
+const BIBLICAS = [
+  // 3
+  B('REI', '', 'Título de Davi e de Salomão', 1),
+  B('LEI', '', 'O que Moisés recebeu no Sinai', 1),
+  B('PAO', 'PÃO', 'Multiplicado para a multidão', 1),
+  B('PAZ', '', 'A que Jesus deixou aos seus', 1),
+  B('MAR', '', 'O Vermelho, aberto por Moisés', 1),
+  B('SAL', '', 'Vós sois o ___ da terra', 1),
+  B('MEL', '', 'Comido com gafanhotos', 1),
+  B('LUZ', '', 'A primeira coisa que Deus criou', 1),
+  B('CEU', 'CÉU', 'Onde está o Pai nosso', 1),
+  B('NOE', 'NOÉ', 'Construiu a arca', 1),
+  B('ELI', '', 'Sacerdote que criou Samuel', 3),
+  B('SEM', '', 'Filho de Noé', 3),
+  B('CAM', '', 'Filho de Noé, pai de Canaã', 3),
+  B('FEL', '', 'Dado a Jesus com vinagre', 3),
+  B('IRA', '', 'A de Deus contra a impiedade', 2),
+  B('UVA', '', 'Fruto da videira de João 15', 2),
+  B('ARA', '', 'Altar, em linguagem poética', 3),
+  // 4
+  B('CRUZ', '', 'Onde Cristo morreu', 1),
+  B('ADAO', 'ADÃO', 'O primeiro homem', 1),
+  B('CAIM', '', 'Matou o próprio irmão', 1),
+  B('ABEL', '', 'Morto pelo próprio irmão', 1),
+  B('ARAO', 'ARÃO', 'Irmão de Moisés', 1),
+  B('SAUL', '', 'Primeiro rei de Israel', 1),
+  B('AMOR', '', 'O maior de 1 Coríntios 13', 1),
+  B('CEIA', '', 'A última, na noite da traição', 1),
+  B('ALMA', '', 'Ama o Senhor de toda a ___', 1),
+  B('ANJO', '', 'Gabriel foi um deles', 1),
+  B('FOGO', '', 'Desceu em línguas no Pentecoste', 1),
+  B('ARCA', '', 'A da aliança, ou a de Noé', 1),
+  B('EDEN', 'ÉDEN', 'Jardim onde Deus pôs o homem', 1),
+  B('MANA', 'MANÁ', 'Pão do céu no deserto', 1),
+  B('VIDA', '', 'O caminho, a verdade e a ___', 1),
+  B('JOAO', 'JOÃO', 'O discípulo amado', 1),
+  B('DAVI', '', 'Matou Golias com uma pedra', 1),
+  B('JACO', 'JACÓ', 'Lutou com o anjo em Peniel', 1),
+  B('AMEM', 'AMÉM', 'Palavra que encerra a oração', 1),
+  B('JOIO', '', 'Semeado entre o trigo', 2),
+  B('REDE', '', 'O que Pedro largou', 2),
+  B('RUTE', '', 'A moabita, bisavó de Davi', 2),
+  B('ESAU', 'ESAÚ', 'Trocou o direito por lentilhas', 2),
+  B('SEDE', '', 'Tenho ___, disse Jesus na cruz', 2),
+  B('CANA', 'CANÁ', 'Onde a água virou vinho', 2),
+  B('NILO', '', 'Rio do cesto de Moisés', 2),
+  B('SIAO', 'SIÃO', 'Monte da cidade de Davi', 3),
+  B('BODE', '', 'O emissário levava o pecado', 3),
+  B('LOBO', '', 'Habitará com o cordeiro', 3),
+  // 5
+  B('JESUS', '', 'O Verbo que se fez carne', 1),
+  B('PEDRO', '', 'Negou o Mestre três vezes', 1),
+  B('PAULO', '', 'Apóstolo dos gentios', 1),
+  B('MARIA', '', 'Mãe de Jesus', 1),
+  B('JUDAS', '', 'Traiu Jesus por trinta moedas', 1),
+  B('JONAS', '', 'Três dias no ventre do peixe', 1),
+  B('ELIAS', '', 'Subiu ao céu num carro de fogo', 1),
+  B('BELEM', 'BELÉM', 'Cidade onde Jesus nasceu', 1),
+  B('SINAI', '', 'Monte da entrega da Lei', 1),
+  B('BABEL', '', 'Torre da confusão das línguas', 1),
+  B('EGITO', '', 'Terra da escravidão de Israel', 1),
+  B('CANAA', 'CANAÃ', 'Terra prometida a Abraão', 1),
+  B('ALTAR', '', 'Onde se ofereciam vítimas', 1),
+  B('VINHO', '', 'O que Jesus fez da água em Caná', 1),
+  B('SALMO', '', 'Cântico do saltério', 1),
+  B('GRACA', 'GRAÇA', 'Pela ___ sois salvos', 1),
+  B('FILHO', '', 'O pródigo voltou ao pai', 1),
+  B('EXODO', 'ÊXODO', 'Livro da saída do Egito', 1),
+  B('SANTO', '', 'O que os serafins clamavam', 2),
+  B('MORTE', '', 'Onde está a tua vitória?', 2),
+  B('TRIGO', '', 'Separado do joio na parábola', 2),
+  B('SIMAO', 'SIMÃO', 'Nome de Pedro no início', 2),
+  B('MARTA', '', 'Irmã de Lázaro e Maria', 2),
+  B('ESTER', '', 'Rainha que salvou o seu povo', 2),
+  B('TIAGO', '', 'Filho de Zebedeu, irmão de João', 2),
+  B('BETEL', '', 'Onde Jacó sonhou com a escada', 2),
+  B('MANSO', '', 'Bem-aventurado, herdará a terra', 2),
+  B('JUSTO', '', 'Viverá pela fé, diz Habacuque', 2),
+  B('MOABE', '', 'Terra de onde veio Rute', 3),
+  B('HORTO', '', 'Getsêmani, o ___ da agonia', 3),
+  B('JUDA', 'JUDÁ', 'Tribo de Davi', 3),
+  B('LEVI', '', 'Tribo dos sacerdotes', 3),
+  // 6
+  B('MOISES', 'MOISÉS', 'Tirou Israel do Egito', 1),
+  B('CRISTO', '', 'O Ungido', 1),
+  B('SENHOR', '', 'É o meu pastor, nada me faltará', 1),
+  B('IGREJA', '', 'Corpo de Cristo', 1),
+  B('JOSUE', 'JOSUÉ', 'Derrubou os muros de Jericó', 1),
+  B('DANIEL', '', 'Lançado na cova dos leões', 1),
+  B('ABRAAO', 'ABRAÃO', 'Pai da fé', 1),
+  B('GOLIAS', '', 'Gigante vencido por Davi', 1),
+  B('SANSAO', 'SANSÃO', 'Perdeu a força com os cabelos', 1),
+  B('TEMPLO', '', 'Casa de oração em Jerusalém', 1),
+  B('OVELHA', '', 'A que se perdeu e foi buscada', 1),
+  B('PASTOR', '', 'Dá a vida pelas ovelhas', 1),
+  B('LAZARO', 'LÁZARO', 'Ressuscitado ao quarto dia', 1),
+  B('ORACAO', 'ORAÇÃO', 'Ensinada no Pai Nosso', 1),
+  B('NAZARE', 'NAZARÉ', 'Cidade onde Jesus cresceu', 1),
+  B('DILUVIO', 'DILÚVIO', 'Quarenta dias de chuva', 1),
+  B('ISAQUE', '', 'Filho da promessa', 2),
+  B('SAMUEL', '', 'Profeta que ungiu Davi', 2),
+  B('ISAIAS', 'ISAÍAS', 'Profeta do Emanuel', 2),
+  B('MATEUS', '', 'Publicano que virou apóstolo', 2),
+  B('MARCOS', '', 'Evangelista de Pedro', 2),
+  B('DALILA', '', 'Descobriu o segredo de Sansão', 2),
+  B('SODOMA', '', 'Cidade destruída com Gomorra', 2),
+  B('CALICE', 'CÁLICE', 'Passa de mim este ___', 2),
+  B('ELISEU', '', 'Discípulo e sucessor de Elias', 3),
+  B('SIMEAO', 'SIMEÃO', 'Ancião que tomou o menino', 3),
+  B('JORDAO', 'JORDÃO', 'Rio do batismo de Jesus', 2),
+  // 7
+  B('PROFETA', '', 'Ofício de Isaías e de Jeremias', 1),
+  B('BATISMO', '', 'O de João, nas águas do Jordão', 1),
+  B('SALOMAO', 'SALOMÃO', 'Rei que pediu sabedoria', 1),
+  B('MESSIAS', '', 'O Ungido esperado por Israel', 1),
+  B('GENESIS', 'GÊNESIS', 'Primeiro livro da Bíblia', 1),
+  B('PILATOS', '', 'Lavou as mãos diante do povo', 1),
+  B('MILAGRE', '', 'Sinal como o das bodas de Caná', 2),
+  B('ESTEVAO', 'ESTÊVÃO', 'O primeiro mártir cristão', 2),
+  B('HEBREUS', '', 'Carta do sumo sacerdote', 3),
+  B('ROMANOS', '', 'Carta da justificação pela fé', 3),
+  // 8
+  B('CORDEIRO', '', 'Tira o pecado do mundo', 1),
+  B('PARABOLA', 'PARÁBOLA', 'A do semeador', 1),
+  B('APOSTOLO', 'APÓSTOLO', 'Cada um dos doze', 1),
+  B('CALVARIO', 'CALVÁRIO', 'Lugar da caveira', 2),
+  B('JEREMIAS', '', 'O profeta que chorou', 2),
+  B('EZEQUIEL', '', 'Viu o vale de ossos secos', 2),
+  B('BARRABAS', 'BARRABÁS', 'Solto no lugar de Jesus', 2),
+  // 9
+  B('EVANGELHO', '', 'Boa nova de Cristo', 1),
+  B('SABEDORIA', '', 'O que Salomão pediu a Deus', 1),
+  B('JERUSALEM', 'JERUSALÉM', 'Cidade santa do templo', 1),
+  B('DISCIPULO', 'DISCÍPULO', 'Seguidor de Jesus', 1),
+];
+
+const NEUTRAS = [
+  // 3
+  N('ASA', '', 'Membro do voo das aves', 1),
+  N('AVE', '', 'Animal de penas', 1),
+  N('AVO', 'AVÔ', 'Pai do pai', 1),
+  N('BOI', '', 'Macho da vaca', 1),
+  N('CAL', '', 'Pó branco da caiação', 2),
+  N('CHA', 'CHÁ', 'Bebida de erva quente', 1),
+  N('COR', '', 'Azul, verde ou vermelho', 1),
+  N('DIA', '', 'Vinte e quatro horas', 1),
+  N('DOR', '', 'Sensação de sofrimento', 1),
+  N('ERA', '', 'Período longo da história', 1),
+  N('FIM', '', 'O contrário de começo', 1),
+  N('GAS', 'GÁS', 'Estado da matéria', 1),
+  N('GEL', '', 'Substância pastosa', 2),
+  N('LAR', '', 'A casa da família', 1),
+  N('LUA', '', 'Satélite da Terra', 1),
+  N('MAO', 'MÃO', 'Extremidade do braço', 1),
+  N('MES', 'MÊS', 'Doze formam um ano', 1),
+  N('NOZ', '', 'Fruto de casca dura', 2),
+  N('OVO', '', 'Posto pela galinha', 1),
+  N('PAI', '', 'Quem gerou o filho', 1),
+  N('PES', 'PÉS', 'Sustentam o corpo', 1),
+  N('RIO', '', 'Curso de água', 1),
+  N('SOL', '', 'Estrela do nosso sistema', 1),
+  N('SUL', '', 'Oposto ao norte', 1),
+  N('TIA', '', 'Irmã do pai', 1),
+  N('TIO', '', 'Irmão da mãe', 1),
+  N('VOZ', '', 'Som da fala', 1),
+  N('ATO', '', 'Ação praticada', 1),
+  N('ANO', '', 'Doze meses', 1),
+  N('ARO', '', 'Círculo de metal', 2),
+  N('AMO', '', 'Senhor do servo', 2),
+  N('ELO', '', 'Peça da corrente', 2),
+  N('EMA', '', 'Ave corredora do cerrado', 3),
+  N('FEZ', '', 'Passado de fazer', 1),
+  N('GIZ', '', 'Escreve no quadro', 1),
+  N('IDE', '', '___ por todo o mundo', 2),
+  N('MAL', '', 'Oposto do bem', 1),
+  N('NAU', '', 'Embarcação antiga', 2),
+  N('ORA', '', 'Faz oração', 1),
+  N('PAR', '', 'Dois juntos', 1),
+  N('POR', '', 'Preposição de causa', 1),
+  N('SIM', '', 'Resposta afirmativa', 1),
+  N('TOM', '', 'Altura do som', 2),
+  N('USO', '', 'Emprego de algo', 1),
+  N('VER', '', 'Enxergar', 1),
+  N('VIA', '', 'Caminho, estrada', 1),
+  N('VIL', '', 'Desprezível', 3),
+  N('SEU', '', 'Pronome de posse', 1),
+  N('TEU', '', 'Pronome de posse', 1),
+  N('NOS', 'NÓS', 'Laço apertado na corda', 1),
+  N('REU', 'RÉU', 'Quem responde ao processo', 2),
+  // 4
+  N('AREA', 'ÁREA', 'Espaço de terreno', 1),
+  N('ASNO', '', 'Jumento', 2),
+  N('AULA', '', 'Encontro de ensino', 1),
+  N('BOLO', '', 'Doce de festa', 1),
+  N('CASA', '', 'Moradia', 1),
+  N('CEDO', '', 'De manhã bem cedo', 1),
+  N('CEGO', '', 'Quem não enxerga', 1),
+  N('CHAO', 'CHÃO', 'Superfície onde se pisa', 1),
+  N('CORO', '', 'Grupo que canta', 1),
+  N('DEDO', '', 'Cada um dos cinco da mão', 1),
+  N('DOCE', '', 'Sabor do açúcar', 1),
+  N('ERVA', '', 'Planta rasteira', 1),
+  N('FACA', '', 'Corta o alimento', 1),
+  N('FASE', '', 'Etapa de um processo', 1),
+  N('FILA', '', 'Um atrás do outro', 1),
+  N('GADO', '', 'Rebanho de bois', 1),
+  N('GATO', '', 'Bicho de miar', 1),
+  N('GELO', '', 'Água congelada', 1),
+  N('HORA', '', 'Sessenta minutos', 1),
+  N('ILHA', '', 'Terra cercada de água', 1),
+  N('IRMA', 'IRMÃ', 'Filha dos mesmos pais', 1),
+  N('JOGO', '', 'Partida disputada', 1),
+  N('LAGO', '', 'Água parada cercada de terra', 1),
+  N('LAMA', '', 'Terra com água', 1),
+  N('LEAO', 'LEÃO', 'Rei dos animais', 1),
+  N('LIRA', '', 'Instrumento de cordas antigo', 2),
+  N('LOJA', '', 'Onde se compra', 1),
+  N('LUAR', '', 'Claridade da noite', 2),
+  N('MALA', '', 'Leva a roupa na viagem', 1),
+  N('MESA', '', 'Móvel da refeição', 1),
+  N('MODO', '', 'Maneira de fazer', 1),
+  N('MURO', '', 'Parede que cerca', 1),
+  N('NAVE', '', 'Corpo central da igreja', 2),
+  N('NEVE', '', 'Cai branca no inverno', 1),
+  N('NOTA', '', 'Som da música', 1),
+  N('OBRA', '', 'Trabalho realizado', 1),
+  N('ONDA', '', 'Movimento do mar', 1),
+  N('OURO', '', 'Metal precioso', 1),
+  N('PATO', '', 'Ave que nada', 1),
+  N('PENA', '', 'Cobre a ave', 1),
+  N('PICO', '', 'Ponto mais alto', 1),
+  N('POCO', 'POÇO', 'Buraco de tirar água', 1),
+  N('RAIO', '', 'Corta o céu na tempestade', 1),
+  N('RAMO', '', 'Galho da árvore', 1),
+  N('RIMA', '', 'Som igual no fim do verso', 1),
+  N('RISO', '', 'Expressão de alegria', 1),
+  N('ROSA', '', 'Flor de espinhos', 1),
+  N('SALA', '', 'Cômodo de estar', 1),
+  N('SAPO', '', 'Anfíbio que coaxa', 1),
+  N('SEDA', '', 'Tecido fino e macio', 1),
+  N('SINO', '', 'Badala na torre', 1),
+  N('SOPA', '', 'Prato quente e líquido', 1),
+  N('TETO', '', 'Cobertura do cômodo', 1),
+  N('TOCA', '', 'Abrigo do animal', 1),
+  N('TRIO', '', 'Conjunto de três', 1),
+  N('URSO', '', 'Animal grande e peludo', 1),
+  N('VASO', '', 'Recipiente da planta', 1),
+  N('VELA', '', 'Dá luz e derrete', 1),
+  N('VILA', '', 'Povoado pequeno', 1),
+  N('VOTO', '', 'Promessa solene', 1),
+  N('ZONA', '', 'Região delimitada', 2),
+  N('MATO', '', 'Vegetação fechada', 1),
+  N('ELMO', '', 'Capacete do guerreiro', 2),
+  N('AVOS', '', 'Frações do inteiro', 3),
+  N('ODIO', 'ÓDIO', 'Sentimento contrário ao amor', 1),
+  N('OSSO', '', 'Peça do esqueleto', 1),
+  N('OLMO', '', 'Árvore de sombra larga', 3),
+  // 5
+  N('AGUIA', 'ÁGUIA', 'Ave de rapina que sobe alto', 1),
+  N('AMIGO', '', 'Companheiro fiel', 1),
+  N('ARADO', '', 'Revolve a terra', 2),
+  N('BARCO', '', 'Navega no lago', 1),
+  N('BRISA', '', 'Vento suave', 1),
+  N('CAMPO', '', 'Terra fora da cidade', 1),
+  N('CANTO', '', 'Música da voz', 1),
+  N('CARTA', '', 'Escrita e enviada', 1),
+  N('CHAVE', '', 'Abre a porta', 1),
+  N('CINZA', '', 'Resto da queima', 1),
+  N('CORDA', '', 'Fio grosso e torcido', 1),
+  N('COROA', '', 'Ornato do rei', 1),
+  N('DENTE', '', 'Serve para mastigar', 1),
+  N('FARDO', '', 'Peso que se carrega', 2),
+  N('FESTA', '', 'Celebração alegre', 1),
+  N('FONTE', '', 'De onde brota a água', 1),
+  N('FORCA', 'FORÇA', 'Vigor, poder', 1),
+  N('HORTA', '', 'Canteiro de legumes', 1),
+  N('LEITE', '', 'Branco, da vaca', 1),
+  N('LIVRO', '', 'Páginas encadernadas', 1),
+  N('LUGAR', '', 'Espaço determinado', 1),
+  N('MANHA', 'MANHÃ', 'Começo do dia', 1),
+  N('MONTE', '', 'Elevação de terra', 1),
+  N('MUNDO', '', 'O planeta todo', 1),
+  N('NOITE', '', 'Depois do pôr do sol', 1),
+  N('NUVEM', '', 'Flutua no céu', 1),
+  N('OLIVA', '', 'Fruto da oliveira', 2),
+  N('PEDRA', '', 'Rocha solta', 1),
+  N('PONTE', '', 'Liga as duas margens', 1),
+  N('PORTA', '', 'Entrada da casa', 1),
+  N('PRAIA', '', 'Areia junto ao mar', 1),
+  N('PRATO', '', 'Onde se serve a comida', 1),
+  N('RELVA', '', 'Grama rasteira', 2),
+  N('SELVA', '', 'Mata fechada', 2),
+  N('SONHO', '', 'Visto durante o sono', 1),
+  N('TERRA', '', 'Solo que se cultiva', 1),
+  N('TORRE', '', 'Construção alta', 1),
+  N('VERAO', 'VERÃO', 'Estação mais quente', 1),
+  N('VENTO', '', 'Ar em movimento', 1),
+  N('VIDRO', '', 'Transparente e frágil', 1),
+  N('ZEBRA', '', 'Listrada da savana', 1),
+  // 6
+  N('AMIZADE', '', 'Vínculo entre amigos', 1),
+  N('ARVORE', 'ÁRVORE', 'Tem tronco, galhos e folhas', 1),
+  N('CIDADE', '', 'Grande povoação', 1),
+  N('DESERTO', '', 'Terra seca e sem água', 1),
+  N('ESCADA', '', 'Sobe-se degrau a degrau', 1),
+  N('ESTRELA', '', 'Guiou os magos do oriente', 1),
+  N('JANELA', '', 'Abre-se para a rua', 1),
+  N('MADEIRA', '', 'Material do carpinteiro', 1),
+  N('RAINHA', '', 'Esposa do rei', 1),
+  N('SEMENTE', '', 'Lançada ao solo pelo semeador', 1),
+  N('VERDADE', '', 'Ela vos libertará', 1),
+  N('CAMINHO', '', 'O estreito conduz à vida', 1),
+];
+
+
+function rng(semente) {
+  let a = semente >>> 0;
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function embaralhar(arr, r) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1));[a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+
+// grade: matriz de células { t:'.'|'L'|'D', ch, H:idx, V:idx }
+function novaGrade(w, h) {
+  const g = [];
+  for (let r = 0; r < h; r++) { g.push([]); for (let c = 0; c < w; c++) g[r].push({ t: '.', ch: '', H: -1, V: -1 }); }
+  return g;
+}
+
+function podeColocar(g, w, h, pal, r, c, dir) {
+  const L = pal.length;
+  const fr = dir === 'H' ? r : r + L - 1;
+  const fc = dir === 'H' ? c + L - 1 : c;
+  if (r < 0 || c < 0 || fr >= h || fc >= w) return null;
+
+  // célula da definição, imediatamente antes do início
+  const dr = dir === 'H' ? r : r - 1;
+  const dc = dir === 'H' ? c - 1 : c;
+  if (dr < 0 || dc < 0) return null;
+  const cd = g[dr][dc];
+  if (cd.t === 'L') return null;
+  if (cd.t === 'D' && cd[dir] >= 0) return null;
+
+  // célula seguinte ao fim não pode ser letra
+  const sr = dir === 'H' ? r : r + L;
+  const sc = dir === 'H' ? c + L : c;
+  if (sr < h && sc < w && g[sr][sc].t === 'L') return null;
+
+  let cruz = 0;
+  for (let k = 0; k < L; k++) {
+    const rr = dir === 'H' ? r : r + k;
+    const cc = dir === 'H' ? c + k : c;
+    const cel = g[rr][cc];
+    if (cel.t === 'D') return null;
+    if (cel.t === 'L') {
+      if (cel.ch !== pal[k]) return null;
+      if (cel[dir] >= 0) return null;            // já pertence a palavra nesta direção
+      cruz++;
+    } else {
+      // letra nova: vizinhos perpendiculares precisam estar livres
+      const v1 = dir === 'H' ? [rr - 1, cc] : [rr, cc - 1];
+      const v2 = dir === 'H' ? [rr + 1, cc] : [rr, cc + 1];
+      for (const [a, b] of [v1, v2])
+        if (a >= 0 && b >= 0 && a < h && b < w && g[a][b].t === 'L') return null;
+    }
+  }
+  return { cruz, dr, dc };
+}
+
+function colocar(g, pal, r, c, dir, idx) {
+  const L = pal.length;
+  const dr = dir === 'H' ? r : r - 1;
+  const dc = dir === 'H' ? c - 1 : c;
+  const cd = g[dr][dc];
+  cd.t = 'D'; cd[dir] = idx;
+  for (let k = 0; k < L; k++) {
+    const rr = dir === 'H' ? r : r + k;
+    const cc = dir === 'H' ? c + k : c;
+    g[rr][cc].t = 'L'; g[rr][cc].ch = pal[k]; g[rr][cc][dir] = idx;
+  }
+}
+
+function gerarPagina(cfg) {
+  const { w, h, semente, nivel, minTema, banco, tentativas = 6000 } = cfg;
+  const r = rng(semente);
+  const g = novaGrade(w, h);
+  const disp = banco.filter(p => p.n <= nivel && p.p.length >= 3 && p.p.length <= Math.max(w, h) - 1);
+  const temas = embaralhar(disp.filter(p => p.t === 1), r);
+  const outras = embaralhar(disp.filter(p => p.t === 0), r);
+  const usadas = new Set();
+  const vagas = [];
+
+  // primeira palavra: tema, comprida, na horizontal
+  const semente0 = temas.filter(p => p.p.length >= 5 && p.p.length <= w - 2)[0] || temas[0];
+  const r0 = 1 + Math.floor(r() * Math.min(2, h - 2));
+  colocar(g, semente0.p, r0, 1, 'H', 0);
+  vagas.push({ dir: 'H', r: r0, c: 1, len: semente0.p.length, pal: semente0, dr: r0, dc: 0 });
+  usadas.add(semente0.p);
+
+  const pos = () => {
+    const out = [];
+    for (let i = 0; i < h; i++) for (let c = 0; c < w; c++) if (g[i][c].t === 'L') out.push([i, c]);
+    return out;
+  };
+
+  // varreduras: em cada rodada tenta encaixar palavras em toda letra livre
+  const preferencia = () => {
+    const faltaTema = vagas.filter(v => v.pal.t === 1).length < minTema;
+    return faltaTema ? [temas, outras] : (r() < 0.4 ? [temas, outras] : [outras, temas]);
+  };
+  for (let rodada = 0; rodada < 10; rodada++) {
+    let mudou = false;
+    const celulas = embaralhar(pos(), r);
+    for (const [ar, ac] of celulas) {
+      const cel = g[ar][ac];
+      if (cel.t !== 'L') continue;
+      for (const dir of embaralhar(['H', 'V'], r)) {
+        if (cel[dir] >= 0) continue;
+        const letra = cel.ch;
+        let melhor = null;
+        for (const lista of preferencia()) {
+          const ini = Math.floor(r() * lista.length);
+          for (let n = 0; n < lista.length; n++) {
+            const p = lista[(ini + n) % lista.length];
+            if (usadas.has(p.p)) continue;
+            let k = p.p.indexOf(letra);
+            while (k >= 0) {
+              const rr = dir === 'H' ? ar : ar - k;
+              const cc = dir === 'H' ? ac - k : ac;
+              const ok = podeColocar(g, w, h, p.p, rr, cc, dir);
+              if (ok && ok.cruz >= 1) {
+                const nota = ok.cruz * 10 + p.p.length + (p.t ? 3 : 0);
+                if (!melhor || nota > melhor.nota) melhor = { p, rr, cc, ok, nota };
+              }
+              k = p.p.indexOf(letra, k + 1);
+            }
+            if (melhor && melhor.nota >= 20) break;
+          }
+          if (melhor) break;
+        }
+        if (melhor) {
+          colocar(g, melhor.p.p, melhor.rr, melhor.cc, dir, vagas.length);
+          vagas.push({ dir, r: melhor.rr, c: melhor.cc, len: melhor.p.p.length, pal: melhor.p, dr: melhor.ok.dr, dc: melhor.ok.dc });
+          usadas.add(melhor.p.p);
+          mudou = true;
+        }
+      }
+    }
+    if (!mudou) break;
+  }
+
+  // passe final: aproveitar regiões vazias com palavras avulsas
+  for (let rodada = 0; rodada < 4; rodada++) {
+    let mudou = false;
+    const vazias = [];
+    for (let i = 0; i < h; i++) for (let c = 0; c < w; c++) if (g[i][c].t === '.') vazias.push([i, c]);
+    for (const [ar, ac] of embaralhar(vazias, r)) {
+      if (g[ar][ac].t !== '.') continue;
+      let melhor = null;
+      for (const lista of preferencia()) {
+        for (const p of lista) {
+          if (usadas.has(p.p)) continue;
+          for (const dir of ['H', 'V']) {
+            const ok = podeColocar(g, w, h, p.p, ar, ac, dir);
+            if (ok) {
+              const nota = ok.cruz * 10 + p.p.length + (p.t ? 3 : 0);
+              if (!melhor || nota > melhor.nota) melhor = { p, dir, ok, nota };
+            }
+          }
+          if (melhor && melhor.nota >= 12) break;
+        }
+        if (melhor) break;
+      }
+      if (melhor) {
+        colocar(g, melhor.p.p, ar, ac, melhor.dir, vagas.length);
+        vagas.push({ dir: melhor.dir, r: ar, c: ac, len: melhor.p.p.length, pal: melhor.p, dr: melhor.ok.dr, dc: melhor.ok.dc });
+        usadas.add(melhor.p.p);
+        mudou = true;
+      }
+    }
+    if (!mudou) break;
+  }
+
+  let letras = 0, duplas = 0;
+  for (let i = 0; i < h; i++) for (let c = 0; c < w; c++) {
+    const cl = g[i][c];
+    if (cl.t === 'L') { letras++; if (cl.H >= 0 && cl.V >= 0) duplas++; }
+  }
+  return {
+    w, h, semente, nivel, vagas, g,
+    tema: vagas.filter(v => v.pal.t === 1).length,
+    ocupacao: letras / (w * h),
+    cruz: letras ? duplas / letras : 0,
+  };
+}
+
+
+
+const BANCO = [...BIBLICAS, ...NEUTRAS];
+const NIVEIS = [
+  { id: 1, nome: 'Iniciante', w: 9, h: 7, minTema: 6, revela: .14, desc: 'Grade menor, nomes e termos muito conhecidos' },
+  { id: 2, nome: 'Intermediário', w: 10, h: 8, minTema: 8, revela: 0, desc: 'Grade média, definições sem referência' },
+  { id: 3, nome: 'Avançado', w: 12, h: 10, minTema: 12, revela: 0, desc: 'Grade cheia, personagens e livros menos citados' },
+];
+const PAGINAS_POR_NIVEL = 10;
+
+// ---------- armazenamento tolerante a falha ----------
+const cofre = {
+  ler(ch) { try { return JSON.parse(localStorage.getItem(ch) || 'null'); } catch (e) { return null; } },
+  gravar(ch, v) { try { localStorage.setItem(ch, JSON.stringify(v)); } catch (e) { } },
+  apagar(pref) { try { Object.keys(localStorage).filter(k => k.startsWith(pref)).forEach(k => localStorage.removeItem(k)); } catch (e) { } },
+};
+const chave = (nv, n) => `cruzada.v1.${nv}.${n}`;
+
+// ---------- montagem da página ----------
+function montar(nv, n, sementeLivre) {
+  const cfg = NIVEIS[nv - 1];
+  const semente = sementeLivre != null ? sementeLivre : nv * 1000 + n;
+  const p = gerarPagina({ w: cfg.w, h: cfg.h, semente, nivel: nv, minTema: cfg.minTema, banco: BANCO });
+  return recortar(p);
+}
+// remove linhas e colunas totalmente vazias das bordas
+function recortar(p) {
+  let r0 = p.h, r1 = -1, c0 = p.w, c1 = -1;
+  for (let r = 0; r < p.h; r++) for (let c = 0; c < p.w; c++)
+    if (p.g[r][c].t !== '.') { r0 = Math.min(r0, r); r1 = Math.max(r1, r); c0 = Math.min(c0, c); c1 = Math.max(c1, c); }
+  if (r1 < 0) return p;
+  const g = [];
+  for (let r = r0; r <= r1; r++) g.push(p.g[r].slice(c0, c1 + 1));
+  p.g = g; p.w = c1 - c0 + 1; p.h = r1 - r0 + 1;
+  p.vagas.forEach(v => { v.r -= r0; v.c -= c0; v.dr -= r0; v.dc -= c0; });
+  return p;
+}
+
+// ---------- estado ----------
+let est = null;
+
+function iniciar(nv, n, sementeLivre) {
+  const pag = montar(nv, n, sementeLivre);
+  const salvo = sementeLivre == null ? cofre.ler(chave(nv, n)) : null;
+  const letras = {};
+  const dados = {};
+  if (salvo && salvo.letras) Object.assign(letras, salvo.letras);
+  else if (NIVEIS[nv - 1].revela > 0) {
+    // algumas letras já vêm preenchidas no nível iniciante
+    const r = rng(pag.semente + 7);
+    for (let i = 0; i < pag.h; i++) for (let c = 0; c < pag.w; c++)
+      if (pag.g[i][c].t === 'L' && r() < NIVEIS[nv - 1].revela) { letras[i + ',' + c] = pag.g[i][c].ch; dados[i + ',' + c] = 1; }
+  }
+  est = {
+    nv, n, pag, letras, dados: (salvo && salvo.dados) || dados,
+    foco: null, dir: 'H', inicio: Date.now(), decorrido: (salvo && salvo.tempo) || 0, feito: !!(salvo && salvo.feito),
+  };
+  document.getElementById('telaInicio').classList.add('oculto');
+  document.getElementById('telaJogo').classList.remove('oculto');
+  const rotulo = n == null ? `${NIVEIS[nv - 1].nome} — página avulsa` : `${NIVEIS[nv - 1].nome} — página ${n}`;
+  document.getElementById('tituloFolha').textContent = rotulo;
+  document.getElementById('tituloGab').textContent = rotulo;
+  document.getElementById('idFolha').textContent = `nº ${nv}-${String(pag.semente).padStart(4, '0')}`;
+  desenhar();
+  desenharGabarito();
+  primeiraVaga();
+}
+
+// ---------- desenho ----------
+function classeDef(txt) { return txt.length <= 14 ? 'curta' : (txt.length > 26 ? 'longa' : ''); }
+
+function celulaDica(cel) {
+  const d = document.createElement('div');
+  const defs = [];
+  if (cel.H >= 0) defs.push(['h', est.pag.vagas[cel.H]]);
+  if (cel.V >= 0) defs.push(['v', est.pag.vagas[cel.V]]);
+  d.className = 'cel dica' + (defs.length === 2 ? ' duas' : '');
+  defs.forEach(([dir, vaga]) => {
+    const s = document.createElement('div');
+    s.className = 'def ' + classeDef(vaga.pal.d) + (defs.length === 1 ? ' só' : '');
+    s.textContent = vaga.pal.d;
+    d.appendChild(s);
+    const seta = document.createElement('span');
+    seta.className = 'seta ' + dir;
+    seta.textContent = dir === 'h' ? '▸' : '▾';
+    if (defs.length === 2) { seta.style[dir === 'h' ? 'top' : 'bottom'] = dir === 'h' ? '4px' : '2px'; }
+    else { seta.style[dir === 'h' ? 'top' : 'bottom'] = dir === 'h' ? '50%' : '2px'; if (dir === 'h') seta.style.transform = 'translateY(-50%)'; }
+    if (dir === 'v') { seta.style.left = '50%'; seta.style.transform = 'translateX(-50%)'; }
+    d.appendChild(seta);
+  });
+  return d;
+}
+
+function ajustarDicas(raiz) {
+  raiz.querySelectorAll('.def').forEach(d => {
+    d.style.fontSize = '';
+    if (!d.clientHeight) return;
+    let t = parseFloat(getComputedStyle(d).fontSize), guarda = 0;
+    while (d.scrollHeight > d.clientHeight + 1 && t > 5.5 && guarda++ < 24) { t -= .4; d.style.fontSize = t + 'px'; }
+  });
+}
+
+function desenhar() {
+  const gr = document.getElementById('grade');
+  gr.innerHTML = '';
+  gr.style.gridTemplateColumns = `repeat(${est.pag.w}, var(--cel))`;
+  for (let r = 0; r < est.pag.h; r++) for (let c = 0; c < est.pag.w; c++) {
+    const cel = est.pag.g[r][c];
+    let d;
+    if (cel.t === 'D') d = celulaDica(cel);
+    else if (cel.t === 'L') {
+      d = document.createElement('div');
+      d.className = 'cel letra' + (est.dados[r + ',' + c] ? ' dado' : '');
+      d.textContent = est.letras[r + ',' + c] || '';
+      d.dataset.r = r; d.dataset.c = c;
+      d.addEventListener('click', () => focar(r, c, true));
+    } else { d = document.createElement('div'); d.className = 'cel bloco'; }
+    gr.appendChild(d);
+  }
+  ajustarDicas(gr);
+  pintarFoco();
+}
+
+function desenharGabarito() {
+  const gr = document.getElementById('gradeGabarito');
+  gr.innerHTML = '';
+  gr.style.gridTemplateColumns = `repeat(${est.pag.w}, var(--cel))`;
+  for (let r = 0; r < est.pag.h; r++) for (let c = 0; c < est.pag.w; c++) {
+    const cel = est.pag.g[r][c];
+    let d;
+    if (cel.t === 'D') d = celulaDica(cel);
+    else if (cel.t === 'L') { d = document.createElement('div'); d.className = 'cel letra dado'; d.textContent = cel.ch; }
+    else { d = document.createElement('div'); d.className = 'cel bloco'; }
+    gr.appendChild(d);
+  }
+  ajustarDicas(gr);
+}
+
+// ---------- foco e navegação ----------
+function vagaAtiva() {
+  if (!est.foco) return null;
+  const cel = est.pag.g[est.foco.r][est.foco.c];
+  const i = cel[est.dir];
+  return i >= 0 ? est.pag.vagas[i] : (cel.H >= 0 ? est.pag.vagas[cel.H] : (cel.V >= 0 ? est.pag.vagas[cel.V] : null));
+}
+function celulasDa(v) {
+  return Array.from({ length: v.len }, (_, k) => v.dir === 'H' ? [v.r, v.c + k] : [v.r + k, v.c]);
+}
+function focar(r, c, clique) {
+  const cel = est.pag.g[r][c];
+  if (cel.t !== 'L') return;
+  if (clique && est.foco && est.foco.r === r && est.foco.c === c && cel.H >= 0 && cel.V >= 0)
+    est.dir = est.dir === 'H' ? 'V' : 'H';
+  else if (cel[est.dir] < 0) est.dir = est.dir === 'H' ? 'V' : 'H';
+  est.foco = { r, c };
+  pintarFoco();
+}
+function primeiraVaga() {
+  const v = est.pag.vagas[0];
+  est.dir = v.dir; focar(v.r, v.c);
+}
+function irVaga(passo) {
+  const atual = vagaAtiva();
+  const i = atual ? est.pag.vagas.indexOf(atual) : 0;
+  const j = (i + passo + est.pag.vagas.length) % est.pag.vagas.length;
+  const v = est.pag.vagas[j];
+  est.dir = v.dir; est.foco = { r: v.r, c: v.c }; pintarFoco();
+}
+function pintarFoco() {
+  document.querySelectorAll('#grade .cel.letra').forEach(d => d.classList.remove('ativa', 'foco'));
+  const v = vagaAtiva();
+  if (v) {
+    est.dir = v.dir;
+    celulasDa(v).forEach(([r, c]) => {
+      const d = document.querySelector(`#grade .cel[data-r="${r}"][data-c="${c}"]`);
+      if (d) d.classList.add('ativa');
+    });
+    document.getElementById('dicaAtiva').textContent = (v.dir === 'H' ? '▸ ' : '▾ ') + v.pal.d + ` (${v.len})`;
+  }
+  if (est.foco) {
+    const d = document.querySelector(`#grade .cel[data-r="${est.foco.r}"][data-c="${est.foco.c}"]`);
+    if (d) d.classList.add('foco');
+  }
+}
+
+// ---------- digitação ----------
+function escrever(letra) {
+  if (!est.foco) return;
+  const k = est.foco.r + ',' + est.foco.c;
+  if (est.dados[k]) { avancar(1); return; }
+  est.letras[k] = letra;
+  const d = document.querySelector(`#grade .cel[data-r="${est.foco.r}"][data-c="${est.foco.c}"]`);
+  if (d) { d.textContent = letra; d.classList.remove('errada'); }
+  salvar();
+  if (!conferirFim()) avancar(1);
+}
+function apagar() {
+  if (!est.foco) return;
+  const k = est.foco.r + ',' + est.foco.c;
+  if (est.letras[k] && !est.dados[k]) {
+    delete est.letras[k];
+    const d = document.querySelector(`#grade .cel[data-r="${est.foco.r}"][data-c="${est.foco.c}"]`);
+    if (d) { d.textContent = ''; d.classList.remove('errada'); }
+  } else avancar(-1);
+  salvar();
+}
+function avancar(passo) {
+  const v = vagaAtiva(); if (!v) return;
+  const cels = celulasDa(v);
+  const i = cels.findIndex(([r, c]) => r === est.foco.r && c === est.foco.c);
+  const j = i + passo;
+  if (j >= 0 && j < cels.length) { est.foco = { r: cels[j][0], c: cels[j][1] }; pintarFoco(); }
+  else if (passo > 0) irVaga(1);
+}
+
+// ---------- verificação ----------
+function verificar() {
+  let erradas = 0, vazias = 0;
+  document.querySelectorAll('#grade .cel.letra').forEach(d => {
+    const r = +d.dataset.r, c = +d.dataset.c, k = r + ',' + c;
+    d.classList.remove('errada');
+    if (!est.letras[k]) { vazias++; return; }
+    if (est.letras[k] !== est.pag.g[r][c].ch) { d.classList.add('errada'); erradas++; }
+  });
+  modal('Conferência', erradas === 0 && vazias === 0
+    ? '<p>Tudo certo. Página completa.</p>'
+    : `<p>${erradas} letra(s) errada(s), marcadas em vermelho, e ${vazias} casa(s) em branco.</p>`);
+}
+function revelar() {
+  if (!est.foco) return;
+  const { r, c } = est.foco, k = r + ',' + c;
+  est.letras[k] = est.pag.g[r][c].ch; est.dados[k] = 1;
+  const d = document.querySelector(`#grade .cel[data-r="${r}"][data-c="${c}"]`);
+  if (d) { d.textContent = est.letras[k]; d.classList.add('dado'); d.classList.remove('errada'); }
+  salvar(); conferirFim();
+}
+function conferirFim() {
+  for (let r = 0; r < est.pag.h; r++) for (let c = 0; c < est.pag.w; c++) {
+    const cel = est.pag.g[r][c];
+    if (cel.t === 'L' && est.letras[r + ',' + c] !== cel.ch) return false;
+  }
+  est.feito = true; salvar();
+  const biblicas = est.pag.vagas.filter(v => v.pal.t === 1).map(v => v.pal.e);
+  modal('Página concluída', `<p>Tempo: ${formatar(tempoTotal())}.</p>
+    <p>Palavras bíblicas desta página:</p><ul><li>${biblicas.join('</li><li>')}</li></ul>`);
+  return true;
+}
+
+// ---------- tempo e persistência ----------
+const tempoTotal = () => est.decorrido + Math.floor((Date.now() - est.inicio) / 1000);
+const formatar = s => String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+function salvar() {
+  if (est.n == null) return;
+  cofre.gravar(chave(est.nv, est.n), { letras: est.letras, dados: est.dados, tempo: tempoTotal(), feito: est.feito });
+}
+setInterval(() => {
+  if (!est || document.getElementById('telaJogo').classList.contains('oculto')) return;
+  document.getElementById('relogio').textContent = formatar(tempoTotal());
+}, 1000);
+
+// ---------- telas ----------
+let nivelSel = 1;
+function pintarNiveis() {
+  const alvo = document.getElementById('listaNiveis');
+  alvo.innerHTML = '';
+  NIVEIS.forEach(n => {
+    const b = document.createElement('button');
+    b.className = 'nivel'; b.setAttribute('aria-pressed', n.id === nivelSel);
+    b.innerHTML = `<b>${n.nome}</b><span>${n.desc}</span><span>${n.w} × ${n.h} casas</span>`;
+    b.onclick = () => { nivelSel = n.id; pintarNiveis(); pintarPaginas(); };
+    alvo.appendChild(b);
+  });
+}
+function pintarPaginas() {
+  const alvo = document.getElementById('listaPaginas');
+  alvo.innerHTML = '';
+  for (let i = 1; i <= PAGINAS_POR_NIVEL; i++) {
+    const s = cofre.ler(chave(nivelSel, i));
+    const b = document.createElement('button');
+    b.className = 'pag' + (s && s.feito ? ' feita' : '');
+    b.innerHTML = `<b>${i}</b><small>${s ? (s.feito ? 'concluída' : 'em andamento') : 'nova'}</small>`;
+    b.onclick = () => iniciar(nivelSel, i);
+    alvo.appendChild(b);
+  }
+}
+function voltar() {
+  if (est) salvar();
+  est = null;
+  document.getElementById('telaJogo').classList.add('oculto');
+  document.getElementById('telaInicio').classList.remove('oculto');
+  pintarPaginas();
+}
+function modal(titulo, html) {
+  document.getElementById('tituloModal').textContent = titulo;
+  document.getElementById('corpoModal').innerHTML = html;
+  document.getElementById('veu').classList.add('aberto');
+}
+
+// ---------- teclado próprio ----------
+function montarTeclado() {
+  const linhas = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'];
+  const alvo = document.getElementById('teclado');
+  linhas.forEach((linha, i) => {
+    const d = document.createElement('div'); d.className = 'linhaT';
+    if (i === 2) { const b = document.createElement('button'); b.className = 'tecla larga'; b.textContent = 'apagar'; b.onclick = apagar; d.appendChild(b); }
+    linha.split('').forEach(l => {
+      const b = document.createElement('button'); b.className = 'tecla'; b.textContent = l;
+      b.onclick = () => escrever(l); d.appendChild(b);
+    });
+    if (i === 2) { const b = document.createElement('button'); b.className = 'tecla larga'; b.textContent = 'próxima'; b.onclick = () => irVaga(1); d.appendChild(b); }
+    alvo.appendChild(d);
+  });
+}
+
+document.addEventListener('keydown', e => {
+  if (!est || document.getElementById('telaJogo').classList.contains('oculto')) return;
+  if (e.key === 'Backspace') { e.preventDefault(); apagar(); }
+  else if (e.key === 'Tab') { e.preventDefault(); irVaga(e.shiftKey ? -1 : 1); }
+  else if (/^[a-zA-ZçÇ]$/.test(e.key)) { escrever(e.key.toUpperCase().replace('Ç', 'C')); }
+  else if (e.key.startsWith('Arrow')) {
+    e.preventDefault();
+    const d = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] }[e.key];
+    let r = est.foco.r + d[0], c = est.foco.c + d[1];
+    while (r >= 0 && c >= 0 && r < est.pag.h && c < est.pag.w) {
+      if (est.pag.g[r][c].t === 'L') { est.dir = d[0] ? 'V' : 'H'; focar(r, c); break; }
+      r += d[0]; c += d[1];
+    }
+  }
+});
+
+document.getElementById('btVoltar').onclick = voltar;
+document.getElementById('btVerificar').onclick = verificar;
+document.getElementById('btRevelar').onclick = revelar;
+document.getElementById('btImprimir').onclick = () => window.print();
+document.getElementById('btReiniciar').onclick = () => {
+  est.letras = {}; est.dados = {}; est.decorrido = 0; est.inicio = Date.now(); est.feito = false;
+  salvar(); desenhar(); primeiraVaga();
+};
+document.getElementById('btProxima').onclick = () => irVaga(1);
+document.getElementById('btAnterior').onclick = () => irVaga(-1);
+document.getElementById('btFecharModal').onclick = () => document.getElementById('veu').classList.remove('aberto');
+document.getElementById('btLimpar').onclick = () => { cofre.apagar('cruzada.v1.'); pintarPaginas(); };
+document.getElementById('btGerador').onclick = () => {
+  const s = prompt('Número da página (qualquer número gera uma grade diferente):', String(Math.floor(Math.random() * 9000) + 1000));
+  if (s && /^\d+$/.test(s)) iniciar(nivelSel, null, +s);
+};
+
+window.addEventListener('beforeprint', () => {
+  if (!est) return;
+  ajustarDicas(document.getElementById('grade'));
+  ajustarDicas(document.getElementById('gradeGabarito'));
+});
+let esperaResize;
+window.addEventListener('resize', () => {
+  clearTimeout(esperaResize);
+  esperaResize = setTimeout(() => {
+    if (!est) return;
+    ajustarDicas(document.getElementById('grade'));
+    ajustarDicas(document.getElementById('gradeGabarito'));
+  }, 200);
+});
+
+montarTeclado();
+pintarNiveis();
+pintarPaginas();
+</script>
+</body>
+</html>
