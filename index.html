@@ -60,10 +60,10 @@ button{font-family:inherit;color:inherit;border:0;background:none;cursor:pointer
 
 /* ---------- folha do quebra-cabeça ---------- */
 .folha{background:var(--papel);color:var(--tinta);border-radius:8px;padding:16px;
-  display:inline-block;max-width:100%;overflow:auto}
+  display:block;max-width:100%;overflow:auto}
 .cabFolha{display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-bottom:10px;
   font-family:'Cinzel',serif;font-size:14px;color:#4A4842;letter-spacing:.04em}
-.grade{display:grid;gap:0;border:1.6px solid var(--tinta);width:max-content;max-width:100%}
+.grade{display:grid;gap:0;border:1.6px solid var(--tinta);width:max-content;max-width:100%;margin:0 auto}
 .cel{width:var(--cel);height:var(--cel);border:.5px solid var(--linha);position:relative;overflow:hidden;
   display:flex;align-items:center;justify-content:center}
 .cel.bloco{background:#DCD8CC}
@@ -112,7 +112,7 @@ button{font-family:inherit;color:inherit;border:0;background:none;cursor:pointer
 @media (max-width:760px){
   body{font-size:17px}
   .envelope{padding:14px 16px 0}
-  :root{--cel:34px}
+  .folha{padding:10px}
   .def{display:none}
   .cel.dica{background:#E4DFCE}
   .seta{font-size:13px;top:50%;transform:translateY(-50%)}
@@ -130,6 +130,7 @@ button{font-family:inherit;color:inherit;border:0;background:none;cursor:pointer
 /* ---------- impressão ---------- */
 @media print{
   :root{--cel:14mm}
+  .folha{--cel:14mm !important}
   body{background:#fff;color:#000}
   .envelope{max-width:none;padding:0}
   .topo,.acoes,.teclado,.barra,.niveis,.paginas,.veu,.naoImprime{display:none !important}
@@ -153,6 +154,7 @@ button{font-family:inherit;color:inherit;border:0;background:none;cursor:pointer
   <header class="topo">
     <h1>Cruzadas da Escritura</h1>
     <p id="subtitulo">Palavras cruzadas bíblicas no formato de setas</p>
+    <p style="margin-left:auto;color:rgba(245,239,224,.4);font-size:15px">v<span id="versao"></span></p>
   </header>
 
   <!-- ===== tela inicial ===== -->
@@ -723,6 +725,9 @@ function gerarPagina(cfg) {
 
 
 
+const VERSAO = '1.2';
+document.getElementById('versao').textContent = VERSAO;
+
 const BANCO = [...BIBLICAS, ...NEUTRAS];
 const NIVEIS = [
   { id: 1, nome: 'Iniciante', w: 9, h: 7, minTema: 6, revela: .14, desc: 'Grade menor, nomes e termos muito conhecidos' },
@@ -783,7 +788,8 @@ function iniciar(nv, n, sementeLivre) {
   const rotulo = n == null ? `${NIVEIS[nv - 1].nome} — página avulsa` : `${NIVEIS[nv - 1].nome} — página ${n}`;
   document.getElementById('tituloFolha').textContent = rotulo;
   document.getElementById('tituloGab').textContent = rotulo;
-  document.getElementById('idFolha').textContent = `nº ${nv}-${String(pag.semente).padStart(4, '0')}`;
+  document.getElementById('idFolha').textContent =
+    `nº ${nv}-${String(pag.semente).padStart(4, '0')} · v${VERSAO} · ${BANCO.length} palavras`;
   desenhar();
   desenharGabarito();
   primeiraVaga();
@@ -814,6 +820,18 @@ function celulaDica(cel) {
   return d;
 }
 
+// a casa se ajusta à largura disponível: a grade sempre ocupa a folha inteira
+function ajustarEscala() {
+  if (!est) return;
+  const env = document.querySelector('.envelope');
+  const compacto = (window.innerWidth || 800) <= 760;
+  const folga = (compacto ? 20 : 32) + 32 + 6;   // padding da folha + do envelope + borda
+  const disp = env.clientWidth - folga;
+  const cel = Math.max(22, Math.min(58, Math.floor(disp / est.pag.w)));
+  [document.getElementById('folha'), document.getElementById('folhaGabarito')]
+    .forEach(f => f.style.setProperty('--cel', cel + 'px'));
+}
+
 function ajustarDicas(raiz) {
   raiz.querySelectorAll('.def').forEach(d => {
     d.style.fontSize = '';
@@ -840,6 +858,7 @@ function desenhar() {
     } else { d = document.createElement('div'); d.className = 'cel bloco'; }
     gr.appendChild(d);
   }
+  ajustarEscala();
   ajustarDicas(gr);
   pintarFoco();
 }
@@ -856,6 +875,7 @@ function desenharGabarito() {
     else { d = document.createElement('div'); d.className = 'cel bloco'; }
     gr.appendChild(d);
   }
+  ajustarEscala();
   ajustarDicas(gr);
 }
 
@@ -1078,6 +1098,7 @@ window.addEventListener('resize', () => {
   clearTimeout(esperaResize);
   esperaResize = setTimeout(() => {
     if (!est) return;
+    ajustarEscala();
     ajustarDicas(document.getElementById('grade'));
     ajustarDicas(document.getElementById('gradeGabarito'));
   }, 200);
